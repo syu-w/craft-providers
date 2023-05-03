@@ -126,7 +126,7 @@ def test_load_with_valid_config(mock_executor, config_fixture, default_config_da
         ),
     ]
 
-    assert config_instance == {
+    assert dict(config_instance) == {
         "compatibility_tag": "tag-foo-v1",
         "setup": True,
         "snaps": {"charmcraft": {"revision": 834}, "core22": {"revision": 147}},
@@ -144,7 +144,7 @@ def test_load_with_invalid_config_raises_error(mock_executor, config_fixture):
     error = exc_info.value.errors()
     assert len(error) == 1
     assert error[0]["loc"] == ("invalid",)
-    assert error[0]["type"] == "value_error.extra"
+    assert error[0]["type"] in ("value_error.extra", "extra_forbidden")
 
 
 def test_load_failure_to_pull_file_raises_error(mock_executor):

@@ -26,6 +26,7 @@ from unittest.mock import ANY, call, patch
 import pytest
 from logassert import Exact  # type: ignore
 from pydantic import ValidationError
+from pydantic_core import InitErrorDetails, PydanticCustomError
 
 from craft_providers.actions.snap_installer import Snap, SnapInstallationError
 from craft_providers.bases import centos
@@ -909,7 +910,10 @@ def test_update_setup_status(fake_executor, mock_load, status):
 
 
 def test_ensure_config_compatible_validation_error(fake_executor, mock_load):
-    mock_load.side_effect = ValidationError("foo", InstanceConfiguration)
+    mock_load.side_effect = ValidationError(
+        "test",
+        [InitErrorDetails(type=PydanticCustomError("ValueError", ""), input="test")],
+    )
 
     base_config = centos.CentOSBase(alias=centos.CentOSBaseAlias.SEVEN)
 
@@ -954,7 +958,14 @@ def test_ensure_setup_completed(fake_executor, logs, mock_load):
     "error, error_message",
     [
         (
-            ValidationError("test-error", InstanceConfiguration),
+            ValidationError(
+                "test",
+                [
+                    InitErrorDetails(
+                        type=PydanticCustomError("ValueError", ""), input="test"
+                    )
+                ],
+            ),
             "failed to parse instance configuration file",
         ),
         (FileNotFoundError, "failed to find instance config file"),
